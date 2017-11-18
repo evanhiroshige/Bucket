@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 import 'goal.dart';
 
 class Plan extends Goal {
@@ -20,7 +19,6 @@ class Plan extends Goal {
     super.description = value[description];
     super.location = value[location];
     super.likes = value[likes];
-    super.tags = value[tags];
 
     start = value['start'];
     end = value ['end'];
@@ -36,7 +34,6 @@ class Plan extends Goal {
       'description': description,
       'location': location,
       'likes': likes,
-      'tags': tags,
 
       'start': start,
       'end': end,

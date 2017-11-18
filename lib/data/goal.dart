@@ -1,5 +1,3 @@
-import 'tags.dart';
-
 class Goal{
 
   // title of the goal
@@ -19,7 +17,6 @@ class Goal{
     description = null;
     location = null;
     likes = null;
-    tags = null;
   }
 
   // Retrieves a Goal from json storage
@@ -28,7 +25,6 @@ class Goal{
     description = value['description'];
     location = value['location'];
     likes = value['likes'];
-    tags = value['tags'];
   }
 
   // Converts a goal into json format
@@ -39,7 +35,6 @@ class Goal{
       'description': description,
       'location': location,
       'likes': likes,
-      'tags' : tags,
     };
   }
 }
