@@ -1,29 +1,33 @@
 import 'dart:async';
 
+import 'package:bucket_list/data/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// A class that handles the current user information
-class Networking {
+/// A class that handles the user information
+class Users {
   // The current GoogleSignIn and Profile being represented
   GoogleSignIn _googleSignIn;
+  User _user;
+  User get currentUser => _user;
 
   // The database where all data is stored
   FirebaseAuth _firebaseAuth;
   FirebaseUser _firebaseUser;
   Firestore _firestore;
+  CollectionReference _users;
+  CollectionReference _relationships;
 
   /// Constructor for basic variable initialization
-  Networking() {
+  Users() {
     _googleSignIn = new GoogleSignIn();
     _firebaseAuth = FirebaseAuth.instance;
     _firestore = Firestore.instance;
 
     // Get database references
-    _users = FirebaseDatabase.instance.reference().child('users');
-    _relationships =
-        FirebaseDatabase.instance.reference().child('relationships');
+    _users = _firestore.collection('users');
+    _relationships = _firestore.collection('relationships');
   }
 
   /// Signs in the user
@@ -50,6 +54,7 @@ class Networking {
       );
     }
 
+    /*
     // Try to get a profile
     Profile inProfile = await getProfile();
 
@@ -60,195 +65,42 @@ class Networking {
     } else {
       _profile = inProfile;
     }
+    */
   }
 
   /// Signs out of the current profile
   Future signOut() async {
-    _profile = null;
+    _user = null;
     _firebaseUser = null;
     await _googleSignIn.signOut();
     await _firebaseAuth.signOut();
   }
 
   /// Gets the current profile
-  Future<Profile> getProfile() async {
-    DataSnapshot state = await _users.child(_firebaseUser.uid).once();
-    if (state.value == null) return null;
-    return new Profile.fromJson(state.value);
+  Future<User> getUser() async {
+    return await this.getUserById(_firebaseUser.uid);
   }
 
   /// Gets a profile by id
-  Future<Profile> getProfileById(String id) async {
-    DataSnapshot state = await _users.child(id).once();
-    if (state.value == null) return null;
-    return new Profile.fromJson(state.value);
+  Future<User> getUserById(String id) async {
+    User user;
+    DocumentReference shot = _users.document(id.toString());
+    if(shot != null) {
+      DocumentSnapshot snap = await shot.snapshots.single;
+      // TODO: From document snapshot data (map) to user
+    }
+    return user;
   }
 
   /// Saves the current profile to the database
-  void saveProfile() {
-    _users.child(_firebaseUser.uid).set(profile.toJson());
+  void saveUser() {
+    // TODO: From user to document snapshot data (map)
+    // _users.document(_firebaseUser.uid).setData(...);
   }
 
   /// Deletes the current profile
-  void deleteProfile() {
-    _users.child(_firebaseUser.uid).remove();
+  void deleteUser() {
+    _users.document(_firebaseUser.uid).delete();
     signOut();
-  }
-
-  /// Finds profiles based on the search query
-  Future<List<Profile>> searchForProfiles(String query) async {
-    List<Profile> results = [];
-    Profile newProfile;
-
-    String search = query.toLowerCase();
-    DataSnapshot state = await _users.orderByChild('searchName')
-        .startAt(search).endAt(search + '\uf8ff').once();
-
-    if (state.value == null || state.value.keys == null) return results;
-
-    for (final key in state.value.keys) {
-      newProfile = new Profile.fromJson(state.value[key]);
-      if (newProfile.id != profile.id) results.add(newProfile);
-    }
-
-    return results;
-  }
-
-  /// Gets the friend requests available to the current user
-  Future<List<Profile>> getRequests() async {
-    List<Profile> requests = [];
-    Relationship relationship;
-
-    DataSnapshot state = await _relationships.orderByChild('idOne')
-        .equalTo(profile.id).once();
-    if (state != null && state.value != null) {
-      for (final key in state.value.keys) {
-        relationship = new Relationship.fromJson(state.value[key]);
-        if (relationship != null
-            && relationship.status == 0
-            && relationship.lastUser == relationship.idTwo)
-          requests.add(await getProfileById(relationship.idTwo));
-      }
-    }
-
-    state = await _relationships.orderByChild('idTwo')
-        .equalTo(profile.id).once();
-    if (state != null && state.value != null) {
-      for (final key in state.value.keys) {
-        relationship = new Relationship.fromJson(state.value[key]);
-        if (relationship != null
-            && relationship.status == 0
-            && relationship.lastUser == relationship.idOne)
-          requests.add(await getProfileById(relationship.idOne));
-      }
-    }
-
-    return requests;
-  }
-
-  /// Returns all of the relationships for the current profile
-  Future<Map<Profile, bool>> getFriends() async {
-    Map<Profile, bool> results = new Map<Profile, bool>();
-
-    if (profile == null) return results;
-
-    DataSnapshot state;
-    Relationship relationship;
-    Profile newProfile;
-
-    state = await _relationships.orderByChild('idOne')
-        .equalTo(profile.id).once();
-    if (state.value != null && state.value.keys != null) {
-      for (final key in state.value.keys) {
-        relationship = new Relationship.fromJson(state.value[key]);
-        if (relationship != null) {
-          newProfile = await getProfileById(relationship.idTwo);
-          if (newProfile != null && relationship.status == 1)
-            results.putIfAbsent(newProfile, () => relationship.favTwo);
-        }
-      }
-    }
-
-    state = await _relationships.orderByChild('idTwo')
-        .equalTo(profile.id).once();
-    if (state.value != null && state.value.keys != null) {
-      for (final key in state.value.keys) {
-        relationship = new Relationship.fromJson(state.value[key]);
-        if (relationship != null) {
-          newProfile = await getProfileById(relationship.idOne);
-          if (newProfile != null && relationship.status == 1)
-            results.putIfAbsent(newProfile, () => relationship.favOne);
-        }
-      }
-    }
-
-    return results;
-  }
-
-  /// Makes a relationship with the other profile
-  /// Should default to 0 (Pending request)
-  Future makeRelationship(Profile other) async {
-    Relationship newRelationship = new Relationship(
-      idOne: profile.id,
-      idTwo: other.id,
-      favOne: false,
-      favTwo: false,
-      status: 0,
-      lastUser: profile.id,
-    );
-
-    await _relationships.child(newRelationship.getKey())
-        .set(newRelationship.toJson());
-  }
-
-  /// Returns the relationship between this person and another profile
-  Future<Relationship> getRelationship(Profile other) async {
-    Relationship relationship;
-
-    DataSnapshot state = await _relationships.orderByChild('idOne')
-        .equalTo(profile.id).once();
-    if (state != null && state.value != null) {
-      for (final key in state.value.keys) {
-        relationship = new Relationship.fromJson(state.value[key]);
-        if (relationship != null && relationship.idTwo == other.id)
-          return relationship;
-      }
-    }
-
-    state = await _relationships.orderByChild('idTwo')
-        .equalTo(profile.id).once();
-    if (state != null && state.value != null) {
-      for (final key in state.value.keys) {
-        relationship = new Relationship.fromJson(state.value[key]);
-        if (relationship != null && relationship.idOne == other.id)
-          return relationship;
-      }
-    }
-
-    return new Relationship(
-      idOne: profile.id,
-      idTwo: other.id,
-      favOne: false,
-      favTwo: false,
-      status: -1,
-      lastUser: profile.id,
-    );
-  }
-
-  /// Returns the relationship between this person and another profile
-  Future removeRelationship(Relationship relationship) async {
-    if (_relationships.child(relationship.getKey()).once() != null)
-      _relationships.child(relationship.getKey()).remove();
-  }
-
-  /// Updates the passed relationship in the database
-  Future<bool> updateRelationship(Relationship relationship) async {
-    if (_relationships.child(relationship.getKey()).once() != null) {
-      _relationships.child(relationship.getKey())
-          .set(relationship.toJson());
-      return true;
-    }
-
-    return false;
   }
 }
