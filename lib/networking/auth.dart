@@ -1,30 +1,24 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:kick_it/data/profile.dart';
-import 'package:kick_it/data/relationship.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// A class that handles the current user information
 class Networking {
   // The current GoogleSignIn and Profile being represented
   GoogleSignIn _googleSignIn;
-  Profile _profile;
-
-  Profile get profile => _profile;
 
   // The database where all data is stored
-  DatabaseReference _users;
-  DatabaseReference _relationships;
   FirebaseAuth _firebaseAuth;
   FirebaseUser _firebaseUser;
+  Firestore _firestore;
 
   /// Constructor for basic variable initialization
   Networking() {
-    _profile = null;
     _googleSignIn = new GoogleSignIn();
     _firebaseAuth = FirebaseAuth.instance;
+    _firestore = Firestore.instance;
 
     // Get database references
     _users = FirebaseDatabase.instance.reference().child('users');
