@@ -17,8 +17,16 @@ class Goal{
   // a list of Tags that are attached to this goal
   List<Tags> tags;
 
+  Goal(){
+    title = null;
+    description = null;
+    location = null;
+    likes = null;
+    tags = null;
+  }
+
   // Retrieves a Goal from json storage
-  Goal.fromJson(Map value) {
+  Goal.fromMap(Map value) {
     title = value['title'];
     description = value['description'];
     location = value['location'];
@@ -27,8 +35,7 @@ class Goal{
   }
 
   // Converts a goal into json format
-  /// Converts this profile into json format
-  Map toJson() {
+  Map toMap() {
     return {
       'title': title,
       'searchName': title.toLowerCase(), // do we need this?

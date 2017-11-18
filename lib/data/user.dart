@@ -30,8 +30,8 @@ class User{
     photoUrl = value['photoUrl'];
     location = value['location'];
     bio = value['bio'];
-    currentGoals = value['currentGoals'];
-    pastGoals = value['pastGoals'];
+    currentGoals = new List<Goal>(); // place holder: "value" doesn't keep track of goals
+    pastGoals = new List<Goal>();
   }
 
   //
@@ -54,8 +54,6 @@ class User{
       'photoUrl': photoUrl,
       'location': location,
       'bio': bio,
-      'currentGoals': currentGoals,
-      'pastGoals': pastGoals,
     };
   }
 }
