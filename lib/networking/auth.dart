@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bucket_list/data/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,11 +9,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Networking {
   // The current GoogleSignIn and Profile being represented
   GoogleSignIn _googleSignIn;
+  User _user;
 
   // The database where all data is stored
   FirebaseAuth _firebaseAuth;
   FirebaseUser _firebaseUser;
   Firestore _firestore;
+  CollectionReference _users;
+  CollectionReference _relationships;
 
   /// Constructor for basic variable initialization
   Networking() {
@@ -21,9 +25,8 @@ class Networking {
     _firestore = Firestore.instance;
 
     // Get database references
-    _users = FirebaseDatabase.instance.reference().child('users');
-    _relationships =
-        FirebaseDatabase.instance.reference().child('relationships');
+    _users = _firestore.collection('users');
+    _relationships = _firestore.collection('relationships');
   }
 
   /// Signs in the user
@@ -50,6 +53,7 @@ class Networking {
       );
     }
 
+    /*
     // Try to get a profile
     Profile inProfile = await getProfile();
 
@@ -60,47 +64,53 @@ class Networking {
     } else {
       _profile = inProfile;
     }
+    */
   }
 
   /// Signs out of the current profile
   Future signOut() async {
-    _profile = null;
+    _user = null;
     _firebaseUser = null;
     await _googleSignIn.signOut();
     await _firebaseAuth.signOut();
   }
 
   /// Gets the current profile
-  Future<Profile> getProfile() async {
-    DataSnapshot state = await _users.child(_firebaseUser.uid).once();
-    if (state.value == null) return null;
-    return new Profile.fromJson(state.value);
+  Future<User> getProfile() async {
+    return this.getProfileById(_firebaseUser.uid);
   }
 
   /// Gets a profile by id
-  Future<Profile> getProfileById(String id) async {
-    DataSnapshot state = await _users.child(id).once();
-    if (state.value == null) return null;
-    return new Profile.fromJson(state.value);
+  Future<User> getProfileById(String id) async {
+    User user;
+    DocumentReference shot = _users.document(id.toString());
+    if(shot != null) {
+      DocumentSnapshot snap = await shot.snapshots.single;
+      // TODO: From document snapshot data (map) to user
+    }
+    return user;
   }
 
   /// Saves the current profile to the database
   void saveProfile() {
-    _users.child(_firebaseUser.uid).set(profile.toJson());
+    // TODO: From user to document snapshot data (map)
+    _users.document(_firebaseUser.uid).setData(...);
   }
 
   /// Deletes the current profile
   void deleteProfile() {
-    _users.child(_firebaseUser.uid).remove();
+    _users.document(_firebaseUser.uid).delete();
     signOut();
   }
 
   /// Finds profiles based on the search query
-  Future<List<Profile>> searchForProfiles(String query) async {
-    List<Profile> results = [];
-    Profile newProfile;
+  Future<List<User>> searchForProfiles(String query) async {
+    List<User> results = [];
+    User newProfile;
 
     String search = query.toLowerCase();
+    QuerySnapshot snap = await _users.snapshots.where(test)
+    snap.
     DataSnapshot state = await _users.orderByChild('searchName')
         .startAt(search).endAt(search + '\uf8ff').once();
 
