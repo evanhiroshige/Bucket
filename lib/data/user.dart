@@ -1,4 +1,5 @@
 import 'package:google_sign_in/google_sign_in.dart';
+import 'plan.dart';
 import 'goal.dart';
 
 class User{
@@ -21,7 +22,7 @@ class User{
   List<Goal> currentGoals;
 
   // This users past goals
-  List<Goal> pastGoals;
+  List<Plan> history;
 
   // Retrieves a User from json storage
   User.fromMap(Map value) {
@@ -31,7 +32,7 @@ class User{
     location = value['location'];
     bio = value['bio'];
     currentGoals = new List<Goal>(); // place holder: "value" doesn't keep track of goals
-    pastGoals = new List<Goal>();
+    history = new List<Plan>();
   }
 
   //
@@ -42,7 +43,7 @@ class User{
     location = '';
     bio = '';
     currentGoals = new List<Goal>();
-    pastGoals = new List<Goal>();
+    history = new List<Plan>();
   }
 
   /// Converts this profile into json format
