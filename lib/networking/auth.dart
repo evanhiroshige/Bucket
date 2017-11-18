@@ -95,7 +95,7 @@ class Users {
   /// Saves the current profile to the database
   void saveUser() {
     // TODO: From user to document snapshot data (map)
-    _users.document(_firebaseUser.uid).setData(...);
+    // _users.document(_firebaseUser.uid).setData(...);
   }
 
   /// Deletes the current profile
