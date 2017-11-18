@@ -58,26 +58,4 @@ class User{
       'pastGoals': pastGoals,
     };
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  }
+}
