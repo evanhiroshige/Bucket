@@ -14,9 +14,6 @@ class Goal{
   // a list of UIDs of the people that have liked the goal
   List<String> likes;
 
-  // a list of Tags that are attached to this goal
-  List<Tags> tags;
-
   Goal(){
     title = null;
     description = null;
