@@ -17,7 +17,6 @@ class Users {
   FirebaseUser _firebaseUser;
   Firestore _firestore;
   CollectionReference _users;
-  CollectionReference _relationships;
 
   /// Constructor for basic variable initialization
   Users() {
@@ -27,7 +26,6 @@ class Users {
 
     // Get database references
     _users = _firestore.collection('users');
-    _relationships = _firestore.collection('relationships');
   }
 
   /// Signs in the user
@@ -54,18 +52,16 @@ class Users {
       );
     }
 
-    /*
     // Try to get a profile
-    Profile inProfile = await getProfile();
+    User inUser = await getUser();
 
     // If the profile doesn't exist, save a new one
-    if (inProfile == null) {
-      _profile = new Profile.fromGoogleSignIn(_googleSignIn, _firebaseUser.uid);
-      saveProfile();
+    if (inUser == null) {
+      _user = new User.fromGoogleSignIn(_googleSignIn, _firebaseUser.uid);
+      saveUser();
     } else {
-      _profile = inProfile;
+      _user = inUser;
     }
-    */
   }
 
   /// Signs out of the current profile
@@ -87,15 +83,14 @@ class Users {
     DocumentReference shot = _users.document(id.toString());
     if(shot != null) {
       DocumentSnapshot snap = await shot.snapshots.single;
-      // TODO: From document snapshot data (map) to user
+      user = new User.fromMap(snap.data);
     }
     return user;
   }
 
   /// Saves the current profile to the database
   void saveUser() {
-    // TODO: From user to document snapshot data (map)
-    // _users.document(_firebaseUser.uid).setData(...);
+    _users.document(_firebaseUser.uid).setData(_user.toMap());
   }
 
   /// Deletes the current profile
